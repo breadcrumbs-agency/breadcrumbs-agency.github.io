@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>breadcrumbs agency: Claude Haiku at DeepSeek Flash prices</title>
+<meta name="description" content="breadcrumbs holds every Claude Haiku 5.5 request under 100,000 tokens, where Haiku costs $0.10 in and $0.50 out per million tokens: the price of DeepSeek V4.1 Flash.">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#11111b">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='4' fill='%23a6e3a1'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="site.css">
+</head>
+<body>
+<div class="page">
+
+<header>
+<h1>breadcrumbs agency</h1>
+<p class="claim">Claude Haiku at DeepSeek Flash prices. breadcrumbs locks every Haiku 5.5 request under 100,000 tokens.</p>
+<p class="lede">Anthropic charges five times as much per token for a Haiku 5.5 prompt over 100,000 tokens. breadcrumbs is the memory and context engine
+(ACE) for your agent. It folds the chat before a request crosses that step, so every request is billed at the low tier:
+$0.10 per million input tokens and $0.50 per million output tokens. That is below DeepSeek V4.1 Flash list price, off-peak.</p>
+</header>
+
+<main>
+
+<section aria-labelledby="h-prices">
+<h2 id="h-prices">The prices, per million tokens</h2>
+<div class="wide">
+<table class="prices">
+<thead><tr><th>Model</th><th>Input</th><th>Output</th><th>Cache read</th><th>Cache write</th></tr></thead>
+<tbody>
+<tr class="lock"><td>Claude Haiku 5.5, prompt &le; 100k (with breadcrumbs)</td><td>$0.10</td><td>$0.50</td><td>$0.01</td><td>$0.125</td></tr>
+<tr class="over"><td>Claude Haiku 5.5, prompt &gt; 100k</td><td>$0.50</td><td>$2.50</td><td>$0.05</td><td>$0.625</td></tr>
+<tr><td>DeepSeek V4.1 Flash, off-peak</td><td>$0.15</td><td>$0.60</td><td>$0.003</td><td>&ndash;</td></tr>
+<tr><td>DeepSeek V4.1 Flash, peak</td><td>$0.30</td><td>$1.20</td><td>$0.006</td><td>&ndash;</td></tr>
+</tbody>
+</table>
+</div>
+<p class="note">Sources: <a href="https://platform.claude.com/docs/en/about-claude/pricing">Anthropic pricing</a> (Haiku 5.5: $0.10 / MTok for
+prompts up to 100,000 tokens, $0.50 over; output $0.50 / $2.50) and <a href="https://api-docs.deepseek.com/quick_start/pricing">DeepSeek pricing</a>
+(deepseek-flash, DeepSeek-V4.1-Flash-1017; peak is 01:00&ndash;04:00 and 06:00&ndash;10:00 UTC on weekdays). Read 2026-11-14.
+DeepSeek's cache hits are cheaper than Haiku's. On a cached chat the two land at about the same price; on uncached input and on output, Haiku under the step costs less.</p>
+</section>
+
+<section aria-labelledby="h-request">
+<h2 id="h-request">One request, 2,000 tokens out</h2>
+<div class="wide">
+<table class="prices">
+<thead><tr><th>Request</th><th>Cost</th></tr></thead>
+<tbody>
+<tr class="lock"><td>Haiku 5.5, held at 94,000 by breadcrumbs</td><td>$0.0104</td></tr>
+<tr class="over"><td>Haiku 5.5, left to grow to 150,000</td><td>$0.0800</td></tr>
+<tr><td>DeepSeek V4.1 Flash at 94,000, off-peak / peak</td><td>$0.0153 / $0.0306</td></tr>
+<tr class="lock"><td>Haiku 5.5 at 94,000, 90,000 of it cached</td><td>$0.0023</td></tr>
+<tr><td>DeepSeek V4.1 Flash, the same, off-peak</td><td>$0.0021</td></tr>
+</tbody>
+</table>
+</div>
+<p class="note">Arithmetic on the list prices above (uncached rows: all input at the input rate). A prompt over the step is billed at the high tier for all of its tokens.</p>
+</section>
+
+<section aria-labelledby="h-how">
+<h2 id="h-how">How the lock works</h2>
+<ul class="links">
+<li>ACE counts every input token of a request, cache reads and writes too, the way Anthropic counts the step.</li>
+<li>breadcrumbs gives Haiku 5.5 a built-in <code>ace_ceiling</code> of 94,000 tokens. ACE's estimate read at most 5.9% under the model's own count on a live run, so 94,000 by the estimate stays under 100,000 on the bill.</li>
+<li>A fold keeps every line it takes out: each one stays in memory under its address, and the model opens it again with <code>crumb(id, level)</code> when it needs it. Nothing is summarised away.</li>
+<li>The ceiling comes from the price step in the cost profile. Any model with a price step gets one, and a <code>models</code> entry in <code>config.json</code> changes it.</li>
+</ul>
+</section>
+
+<section aria-labelledby="h-install">
+<h2 id="h-install">Install (Hermes)</h2>
+<pre>hermes plugins install breadcrumbs-agency/breadcrumbs-hermes --yes-deps --enable \
+  --ref "$(git ls-remote https://github.com/breadcrumbs-agency/breadcrumbs-hermes refs/heads/release | cut -f1)"
+hermes config set memory.provider breadcrumbs
+hermes config set context.engine breadcrumbs     # ACE: this holds the price lock</pre>
+<p class="note">Undo: <code>hermes memory off</code>, and set <code>context.engine</code> back to its earlier value.</p>
+</section>
+
+<section aria-labelledby="h-parts">
+<h2 id="h-parts">The parts</h2>
+<ul class="cards">
+<li><a class="card card-bottom" href="https://github.com/breadcrumbs-agency/breadcrumbs-hermes"><h3>breadcrumbs-hermes</h3><p>The Hermes plugin: memory provider, ACE context engine, <code>/viz</code>.</p></a></li>
+<li><a class="card card-explorer" href="https://github.com/breadcrumbs-agency/breadcrumbs"><h3>breadcrumbs</h3><p>The core, the dials and the bundler.</p></a></li>
+<li><a class="card card-plates" href="https://github.com/breadcrumbs-agency/breadcrumbs-common"><h3>breadcrumbs-common</h3><p>The store, costs and ACE, shared by every harness.</p></a></li>
+<li><a class="card card-climb" href="https://github.com/breadcrumbs-agency/breadcrumbs-spacegraph"><h3>breadcrumbs-spacegraph</h3><p>The explorer: sessions as documents, receipts, the settings console.</p></a></li>
+<li><a class="card card-takedown" href="https://github.com/breadcrumbs-agency/breadcrumbs-claude"><h3>breadcrumbs-claude</h3><p>For Claude Code.</p></a></li>
+<li><a class="card card-takedown" href="https://github.com/breadcrumbs-agency/breadcrumbs-codex"><h3>breadcrumbs-codex</h3><p>For Codex.</p></a></li>
+<li><a class="card card-takedown" href="https://github.com/breadcrumbs-agency/breadcrumbs-opencode"><h3>breadcrumbs-opencode</h3><p>For OpenCode.</p></a></li>
+<li><a class="card card-explorer" href="https://breadcrumbs-agency.github.io/hermes-breadcrumb-plugin/"><h3>The films and live pages</h3><p>Every Memory Has an Address, To Scale, The Climb, The Bottom Line.</p></a></li>
+</ul>
+<p class="note">Benchmarks: <a href="https://github.com/breadcrumbs-agency/context-bench">context-bench</a>, <a href="https://github.com/breadcrumbs-agency/memory-bench">memory-bench</a>.</p>
+</section>
+
+</main>
+
+<footer>
+<p>breadcrumbs agency. Prices are list prices on the date above; check the sources before you budget.</p>
+</footer>
+
+</div>
+</body>
+</html>
