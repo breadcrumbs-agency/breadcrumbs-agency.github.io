@@ -110,8 +110,8 @@ DeepSeek's cache hits are cheaper than Haiku's. On a cached chat the two land at
 
 <section aria-labelledby="h-install">
 <h2 id="h-install">Install (Hermes)</h2>
-<pre>hermes plugins install breadcrumbs-agency/breadcrumbs-hermes --yes-deps --enable \
-  --ref "$(git ls-remote https://github.com/breadcrumbs-agency/breadcrumbs-hermes refs/heads/release | cut -f1)"
+<pre>hermes plugins install breadcrumbs-agency/breadcrumbs-hermes-release --yes-deps --enable \
+  --ref "$(git ls-remote https://github.com/breadcrumbs-agency/breadcrumbs-hermes-release refs/heads/master | cut -f1)"
 hermes config set memory.provider breadcrumbs
 hermes config set context.engine breadcrumbs     # ACE: this holds the price lock</pre>
 <p class="note">Undo: <code>hermes memory off</code>, and set <code>context.engine</code> back to its earlier value.</p>
