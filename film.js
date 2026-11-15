@@ -1,5 +1,5 @@
 // The film of the example: one chat on Claude Haiku 5.5 (the data and the scenes: haiku-run.js, made by src/make.py; the
-// voice and the time of each sentence: voice.opus, voice.m4a and haiku-voice.js, made by src/voice.py).
+// voice and the time of each sentence: voice.m4a, voice.opus and haiku-voice.js, made by src/voice.py).
 // Every frame is a function of one number, the time of the film in seconds: where the picture looks (the camera), how
 // many requests are drawn, which of the two pictures shows (the size of each request, or the measures), and the caption.
 // So the bar, a drag on the picture and the voice all move the same clock. A drag that is thrown glides on at the speed
@@ -77,6 +77,8 @@
   host.append(cvs, cap, bar, nums, key, words);
 
   let W = 0, H = 0, dpr = 1, t = still ? T : 0, playing = false, sound = false, audio = null, raf = 0, last = 0;
+  // The voice is fetched while the page is read, not at the click: a file in the page, preload "auto", so Play finds it buffered (the file is 764 KB, with its index in front, so it plays as it arrives)
+  if (SRC) { audio = el("audio"); audio.preload = "auto"; audio.src = SRC; audio.hidden = true; host.append(audio); }
   let goal = null, vel = 0;  // a glide after a thrown drag: the time that the clock goes to (null: at rest) and its speed (film seconds a second)
   const G = {l: 44, r: 10, top: 8, strip: 54, gap: 26, bottom: 20};
   const plot = () => ({x0: G.l, x1: W - G.r, y0: G.top + G.strip + G.gap, y1: H - G.bottom});

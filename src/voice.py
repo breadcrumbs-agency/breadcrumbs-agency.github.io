@@ -4,7 +4,7 @@
     python3 src/voice.py --find "Oliver Silk"        # the id of a voice: in the account, then in the voice library
     python3 src/voice.py --voice <voice id> [--name "Oliver Silk"]
 
-It writes voice.opus and voice.m4a (Opus at 32 kbit/s, and AAC at 48 kbit/s for a browser with no Opus: every scene in
+It writes voice.m4a and voice.opus (AAC at 48 kbit/s, which every browser plays and which the page takes first, and Opus at 32 kbit/s: every scene in
 order, a short pause between them) and haiku-voice.js (when each scene and each
 sentence starts and ends, in seconds: the film runs on these times, and its captions are these sentences). The key is
 read from ELEVEN_API_KEY, ELEVEN_LABS_API_KEY or ELEVENLABS_API_KEY. Needs ffmpeg and ffprobe. Run src/make.py first.
@@ -28,8 +28,8 @@ API = "https://api.elevenlabs.io"
 GAP = 0.55  # seconds of silence after each scene
 # The files of the voice, the best first: (name, the type that a browser is asked about, the encoder). Both are made from the
 # clips as they came (one lossy pass, not two).
-OUT = [("voice.opus", 'audio/ogg; codecs="opus"', ["-c:a", "libopus", "-b:a", "32k"]),
-       ("voice.m4a", 'audio/mp4; codecs="mp4a.40.2"', ["-c:a", "aac", "-b:a", "48k", "-movflags", "+faststart"])]
+OUT = [("voice.m4a", 'audio/mp4; codecs="mp4a.40.2"', ["-c:a", "aac", "-b:a", "48k", "-movflags", "+faststart"]),
+       ("voice.opus", 'audio/ogg; codecs="opus"', ["-c:a", "libopus", "-b:a", "32k"])]
 LEAD = 0.4  # seconds of silence before the first
 
 
@@ -146,7 +146,7 @@ def main():
         total = seconds(wav)
         for name, _, enc in OUT:
             subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", wav] + enc + [os.path.join(HERE, name)], check=True)
-    data = {"src": OUT[-1][0], "srcs": [[name, kind] for name, kind, _ in OUT], "voice": args.name, "total": round(total, 2), "scenes": scenes, "cues": cues}
+    data = {"src": OUT[0][0], "srcs": [[name, kind] for name, kind, _ in OUT], "voice": args.name, "total": round(total, 2), "scenes": scenes, "cues": cues}
     with open(os.path.join(HERE, "haiku-voice.js"), "w", encoding="utf-8") as f:
         f.write("// Made by src/voice.py: the files of the voice, and when each scene and each sentence starts and ends, in seconds.\nwindow.HAIKU_VOICE = " + json.dumps(data, separators=(",", ":")) + ";\n")
     print("%.1f s; %s; %d scenes, %d sentences" % (total, ", ".join("%s %d bytes" % (n, os.path.getsize(os.path.join(HERE, n))) for n, _, _ in OUT), len(scenes), len(cues)))
