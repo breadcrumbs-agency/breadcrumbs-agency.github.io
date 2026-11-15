@@ -292,8 +292,9 @@
     if (playing) { voiceAt(); audio.play().catch(() => { sound = false; paint(); }); paint(); } else play(true);  // Sound on a film that stands: it plays
   }
   const seek = v => { t = clamp(v, 0, T); goal = null; vel = 0; if (sound && audio) voiceAt(); if (playing) last = performance.now(); paint(); };
-  btn.onclick = () => play(!playing);
-  snd.onclick = () => setSound(!sound);
+  let chose = false;  // the reader has chosen the sound once: until then the first Play brings the voice (the click is the gesture that lets a browser play it)
+  btn.onclick = () => { if (!chose && !playing && !snd.hidden) { chose = true; setSound(true); } else play(!playing); };
+  snd.onclick = () => { chose = true; setSound(!sound); };
   rng.oninput = () => seek(+rng.value);
 
   // -- a drag on the picture moves the clock with the hand (the whole width is the whole film); thrown, it glides on
