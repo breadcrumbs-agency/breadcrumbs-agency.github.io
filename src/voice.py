@@ -4,7 +4,8 @@
     python3 src/voice.py --find "Oliver Silk"        # the id of a voice: in the account, then in the voice library
     python3 src/voice.py --voice <voice id> [--name "Oliver Silk"]
 
-It writes voice.mp3 (every scene in order, a short pause between them) and haiku-voice.js (when each scene and each
+It writes voice.opus and voice.m4a (Opus at 32 kbit/s, and AAC at 48 kbit/s for a browser with no Opus: every scene in
+order, a short pause between them) and haiku-voice.js (when each scene and each
 sentence starts and ends, in seconds: the film runs on these times, and its captions are these sentences). The key is
 read from ELEVEN_API_KEY, ELEVEN_LABS_API_KEY or ELEVENLABS_API_KEY. Needs ffmpeg and ffprobe. Run src/make.py first.
 The clips are kept in src/.voice (not in git): a scene is bought again only when its words change.
@@ -25,6 +26,10 @@ import urllib.request
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 API = "https://api.elevenlabs.io"
 GAP = 0.55  # seconds of silence after each scene
+# The files of the voice, the best first: (name, the type that a browser is asked about, the encoder). Both are made from the
+# clips as they came (one lossy pass, not two).
+OUT = [("voice.opus", 'audio/ogg; codecs="opus"', ["-c:a", "libopus", "-b:a", "32k"]),
+       ("voice.m4a", 'audio/mp4; codecs="mp4a.40.2"', ["-c:a", "aac", "-b:a", "48k", "-movflags", "+faststart"])]
 LEAD = 0.4  # seconds of silence before the first
 
 
@@ -136,13 +141,15 @@ def main():
         for n in range(len(clips)):
             graph.append("[%d:a]aresample=44100,aformat=channel_layouts=mono,%sapad=pad_dur=%s[a%d]" % (n, "adelay=%d," % int(LEAD * 1000) if n == 0 else "", GAP, n))
         graph.append("".join("[a%d]" % n for n in range(len(clips))) + "concat=n=%d:v=0:a=1,loudnorm=I=-17:TP=-1.5:LRA=11[out]" % len(clips))
-        out = os.path.join(HERE, "voice.mp3")
-        subprocess.run(cmd + ["-filter_complex", ";".join(graph), "-map", "[out]", "-ac", "1", "-ar", "44100", "-b:a", "80k", out], check=True)
-        total = seconds(out)
-    data = {"src": "voice.mp3", "voice": args.name, "total": round(total, 2), "scenes": scenes, "cues": cues}
+        wav = os.path.join(tmp, "voice.wav")
+        subprocess.run(cmd + ["-filter_complex", ";".join(graph), "-map", "[out]", "-ac", "1", "-ar", "48000", wav], check=True)
+        total = seconds(wav)
+        for name, _, enc in OUT:
+            subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", wav] + enc + [os.path.join(HERE, name)], check=True)
+    data = {"src": OUT[-1][0], "srcs": [[name, kind] for name, kind, _ in OUT], "voice": args.name, "total": round(total, 2), "scenes": scenes, "cues": cues}
     with open(os.path.join(HERE, "haiku-voice.js"), "w", encoding="utf-8") as f:
-        f.write("// Made by src/voice.py: when each scene and each sentence of voice.mp3 starts and ends, in seconds.\nwindow.HAIKU_VOICE = " + json.dumps(data, separators=(",", ":")) + ";\n")
-    print("voice.mp3 %.1f s, %d bytes; %d scenes, %d sentences" % (total, os.path.getsize(out), len(scenes), len(cues)))
+        f.write("// Made by src/voice.py: the files of the voice, and when each scene and each sentence starts and ends, in seconds.\nwindow.HAIKU_VOICE = " + json.dumps(data, separators=(",", ":")) + ";\n")
+    print("%.1f s; %s; %d scenes, %d sentences" % (total, ", ".join("%s %d bytes" % (n, os.path.getsize(os.path.join(HERE, n))) for n, _, _ in OUT), len(scenes), len(cues)))
 
 
 if __name__ == "__main__":

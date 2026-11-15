@@ -1,5 +1,5 @@
 // The film of the example: one chat on Claude Haiku 5.5 (the data and the scenes: haiku-run.js, made by src/make.py; the
-// voice and the time of each sentence: voice.mp3 and haiku-voice.js, made by src/voice.py).
+// voice and the time of each sentence: voice.opus, voice.m4a and haiku-voice.js, made by src/voice.py).
 // Every frame is a function of one number, the time of the film in seconds: where the picture looks (the camera), how
 // many requests are drawn, which of the two pictures shows (the size of each request, or the measures), and the caption.
 // So the bar, a drag on the picture and the voice all move the same clock. A drag that is thrown glides on at the speed
@@ -35,6 +35,13 @@
     });
     return {total: at, scenes, cues};
   })();
+  // the file of the voice: the first one that this browser says it can play
+  const SRC = (() => {
+    if (!V) return "";
+    const a = document.createElement("audio");
+    for (const [src, type] of V.srcs || []) if (a.canPlayType && a.canPlayType(type)) return src;
+    return V.src || "";
+  })();
   const T = TM.total, SS = SC.map((s, n) => TM.cues.filter(c => c[2] === n).map(c => c[0]));
   const said = (n, k) => SS[n].length ? SS[n][Math.min(k, SS[n].length - 1)] : TM.scenes[n][0];  // when sentence k of scene n starts
   // running sums: after k requests
@@ -54,7 +61,7 @@
   cvs.setAttribute("aria-label", "A film of the " + N + " requests of the chat: each request as a column of tokens read from the cache and tokens written to it, against the price step at 100,000 tokens; then the measures. Its words are under it, and the table below has the totals.");
   const cap = el("p", "film-cap", "");
   const bar = el("div", "film-bar"), btn = el("button", "film-play", "Play"), snd = el("button", "film-play film-snd", "Sound: off"), rng = el("input"), where = el("span", "film-where");
-  btn.type = snd.type = "button"; snd.setAttribute("aria-pressed", "false"); snd.hidden = !(V && V.src && TM.cues === V.cues);
+  btn.type = snd.type = "button"; snd.setAttribute("aria-pressed", "false"); snd.hidden = !(SRC && TM.cues === V.cues);
   rng.type = "range"; rng.min = 0; rng.max = T.toFixed(2); rng.step = 0.05; rng.value = 0; rng.setAttribute("aria-label", "Time of the film, in seconds");
   bar.append(btn, snd, rng, where);
   const nums = el("dl", "film-nums"), cell = {};
@@ -280,7 +287,7 @@
   }
   function setSound(on) {
     sound = on;
-    if (on && !audio) { audio = new Audio(V.src); audio.preload = "auto"; }
+    if (on && !audio) { audio = new Audio(SRC); audio.preload = "auto"; }
     if (!on) { if (audio) audio.pause(); return paint(); }
     if (playing) { voiceAt(); audio.play().catch(() => { sound = false; paint(); }); paint(); } else play(true);  // Sound on a film that stands: it plays
   }
@@ -333,5 +340,5 @@
     io.observe(cvs);
   }
   document.addEventListener("visibilitychange", () => { if (document.hidden && playing) play(false); });
-  window.HAIKU_FILM = {total: T, state: () => Object.assign({t, playing, sound, goal, vel, W, H}, stateAt(t)), seek, play, setSound};
+  window.HAIKU_FILM = {total: T, voice: SRC, state: () => Object.assign({t, playing, sound, goal, vel, W, H}, stateAt(t)), seek, play, setSound};
 })();
