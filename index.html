@@ -23,6 +23,45 @@ $0.10 per million input tokens and $0.50 per million output tokens. That is belo
 
 <main>
 
+<section aria-labelledby="h-run">
+<h2 id="h-run">An example of cost and performance control: one chat on Haiku 5.5, measured</h2>
+<p class="lede">Open source lets you set the outcome in a cost domain. The price step is Anthropic's; the ceiling, the fold, the logs and the chart are code you can read and change. In this chat the chart showed where the money went, and a change of one default in the source stopped it.</p>
+<p class="run-id"><code data-k="session">local-98e80cddc604d12e54</code> &middot; <span data-k="all_n">679</span> requests, <span data-k="ace_n">671</span> decisions of the context engine &middot; <span data-k="date">2026-11-14</span> &middot; <span data-k="span">3 h 28 min</span></p>
+<figure class="film">
+<div id="film"><p class="note">The film needs JavaScript. The table below has its numbers.</p></div>
+<figcaption>Two minutes: the size of every request of the chat, then the measures. It plays without sound; <strong>Sound</strong> turns on the narration (voice: Oliver Silk, ElevenLabs). Drag the bar or the picture to move through it; a thrown drag glides on.</figcaption>
+</figure>
+<div class="wide">
+<table class="prices run">
+<thead><tr><th>What the provider counted</th><th>The chat</th><th>A second agent</th><th>Both</th></tr></thead>
+<tbody>
+<tr><td>Requests</td><td data-k="chat_n">654</td><td data-k="agent_n">25</td><td data-k="all_n">679</td></tr>
+<tr><td>Largest request, tokens</td><td class="lock" data-k="chat_max">99,714</td><td class="over" data-k="agent_max">134,155</td><td></td></tr>
+<tr><td>Requests over 100,000 tokens</td><td class="lock" data-k="chat_over">0</td><td class="over" data-k="agent_over">4</td><td data-k="over_n">4</td></tr>
+<tr><td>Input tokens read from the cache</td><td class="lock" data-k="chat_hit">82.8%</td><td data-k="agent_hit">45.9%</td><td data-k="all_hit">81.5%</td></tr>
+<tr><td>Paid: input, cache and output</td><td data-k="chat_paid">$2.01</td><td data-k="agent_paid">$0.443</td><td data-k="all_paid">$2.45</td></tr>
+<tr><td>The same tokens with no cache</td><td data-k="chat_unc">$6.05</td><td data-k="agent_unc">$0.477</td><td data-k="all_unc">$6.53</td></tr>
+</tbody>
+</table>
+</div>
+<ul class="links run-notes">
+<li><strong>The size is held.</strong> No request of the chat passed 100,000 tokens; the middle one was <span data-k="chat_med">88,506</span>. With nothing folded, the same chat passed 100,000 at request
+<span data-k="raw_first">7</span> and reached <span data-k="raw_max">1.7M</span> by the end (the context engine's estimate). breadcrumbs folded it <span data-k="folds">123</span> times.</li>
+<li><strong>The cache does most of the work.</strong> <span data-k="all_hit">81.5%</span> of all input tokens were read from the cache, at a tenth of the input price: the bill is <span data-k="saved">62%</span>
+under the same tokens with no cache. A fold costs a rewrite of the cache above the fixed prefix of <span data-k="base">16,449</span> tokens: <span data-k="rewrites">125</span> requests did that,
+<span data-k="rewrite_tok">68,594</span> tokens and <span data-k="rewrite_usd">$0.0093</span> each (the middle one).</li>
+<li><strong>The step is where the money goes.</strong> The <span data-k="over_n">4</span> requests over 100,000 cost <span data-k="over_usd">$0.336</span>: <span data-k="over_share">13.7%</span> of the bill for
+<span data-k="over_req_share">0.6%</span> of the requests. At the low tier the same requests would have cost <span data-k="over_low">$0.067</span>. None of them is the chat's. A second agent, which the harness starts when a
+turn ends, began with no token count and sized its first request with a default. This chart showed it. With the default corrected (<a href="https://github.com/breadcrumbs-agency/breadcrumbs-common/commit/fda7f6f">the commit</a>), its next <span data-k="after_n">3</span> runs opened at
+<span data-k="after">83,328, 92,785, 87,217</span> tokens.</li>
+<li><strong>Speed.</strong> The middle request took <span data-k="dur_hit">5.0 s</span> when it read the cache above the prefix, and <span data-k="dur_rewrite">7.8 s</span> when it wrote the cache again after a fold.</li>
+</ul>
+<p class="note">From the two logs that breadcrumbs keeps: the provider's token counts for each request, and the context engine's decision for each request. The engine logged
+<span data-k="ace_n">671</span> decisions for the chat; the provider counted <span data-k="chat_n">654</span> requests of the chat and <span data-k="agent_n">25</span> of the second agent, in
+<span data-k="agent_runs">7</span> runs, under the same session id. Dollars are those counts at the list prices below. Eleven small helper requests (a title, approvals) are left out.
+The numbers and the film are made by <a href="https://github.com/breadcrumbs-agency/breadcrumbs-agency.github.io/blob/master/src/make.py">src/make.py</a>, and the narration by <a href="https://github.com/breadcrumbs-agency/breadcrumbs-agency.github.io/blob/master/src/voice.py">src/voice.py</a>; no text of the chat is published.</p>
+</section>
+
 <section aria-labelledby="h-prices">
 <h2 id="h-prices">The prices, per million tokens</h2>
 <div class="wide">
@@ -100,5 +139,8 @@ hermes config set context.engine breadcrumbs     # ACE: this holds the price loc
 </footer>
 
 </div>
+<script src="haiku-run.js"></script>
+<script src="haiku-voice.js"></script>
+<script src="film.js"></script>
 </body>
 </html>

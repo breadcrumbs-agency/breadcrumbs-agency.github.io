@@ -1,6 +1,7 @@
 /* The frame of the site. The look is the plugin's own React page (desktop/plugin.js: DRAW_CSS and EDGE_STYLES):
    ground #1e1e2e on #11111b, card edge #45475a with a lane colour on the left, text #cdd6f4, focus in the yellow halo.
-   Four lane colours and one halo. No web font, no image, no script. Every path in this file is relative. */
+   Four lane colours and one halo. No web font, no image. One script: the film of the example (film.js, with its data in
+   haiku-run.js); without it the page still has every number. Every path in this file is relative. */
 
 :root {
   --ground: #11111b;
@@ -157,3 +158,41 @@ table.prices thead th { color: var(--muted); font-weight: 700; }
 table.prices tr.lock td { color: var(--bottom); font-weight: 700; }
 table.prices tr.over td { color: var(--takedown); }
 .wide { overflow-x: auto; }
+
+/* the example: one chat, measured. The film is a canvas with its bar, its four running numbers and its words. */
+.run-id { margin: 0 0 12px; font: 13px/1.4 var(--mono); color: var(--muted); }
+.run-id code { color: var(--text); }
+#film { background: var(--card); border: 1px solid var(--edge); border-radius: 8px; padding: 10px 12px 12px; }
+#film canvas { display: block; touch-action: pan-y; cursor: grab; }
+#film canvas.drag { cursor: grabbing; }
+#film .note { margin: 0; }
+.film-bar { display: flex; align-items: center; gap: 12px; margin-top: 6px; }
+.film-play { min-width: 76px; height: 44px; padding: 0 14px; background: var(--ground); color: var(--text); border: 1px solid var(--edge);
+  border-radius: 8px; font: 700 14px/1 var(--sans); cursor: pointer; }
+.film-play:hover { border-color: var(--halo); }
+.film-play:focus-visible, .film-bar input:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--halo), 0 0 22px 6px var(--halo-glow); }
+.film-bar input { flex: 1; min-width: 0; height: 44px; margin: 0; accent-color: var(--explorer); touch-action: none; }
+.film-where { min-width: 15em; text-align: right; font: 12px/1.3 var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+.film-nums { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px 16px; margin: 10px 0 0; }
+.film-nums dd { margin: 0; font: 700 20px/1.2 var(--mono); font-variant-numeric: tabular-nums; }
+.film-nums dd.over { color: var(--takedown); }
+.film-nums dt { font-size: 13px; line-height: 1.3; color: var(--muted); }
+.film-cap { min-height: 3.1em; margin: 10px 0 0; max-width: 46em; font-size: 18px; line-height: 1.4; font-weight: 600; }
+.film-words { margin-top: 10px; font-size: 14px; color: var(--muted); }
+.film-words summary { cursor: pointer; min-height: 32px; }
+.film-words p { max-width: 46em; margin: 8px 0 0; }
+.film-key { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 4px 0 0; font-size: 13px; color: var(--muted); }
+.film-key span { display: inline-flex; align-items: center; gap: 6px; }
+.film-key i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; }
+table.run { margin-top: 20px; }
+table.prices td.lock { color: var(--bottom); font-weight: 700; }
+table.prices td.over { color: var(--takedown); font-weight: 700; }
+.run-notes { max-width: 46em; margin: 14px 0 14px; }
+.run-notes li + li { margin-top: 8px; }
+.run-notes span[data-k], .note span[data-k] { font-variant-numeric: tabular-nums; }
+@media (max-width: 640px) {
+  .film-nums { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .film-bar { flex-wrap: wrap; }
+  .film-where { min-width: 0; flex-basis: 100%; text-align: left; }
+  .film-cap { min-height: 5.8em; font-size: 16px; }
+}
